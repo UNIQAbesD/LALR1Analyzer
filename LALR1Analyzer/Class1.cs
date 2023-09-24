@@ -329,7 +329,7 @@ public class LALR1Analyzer
 
     public void MakeAutomaton()
     {
-        Console.WriteLine("MakeAutomaton(LR1)----------");
+        Console.WriteLine("MakeAutomaton----------");
         List<LR1Item> startStateInitItems = new List<LR1Item>();
         startStateInitItems.Add(new LR1Item(Syntaxes.Count - 1, 0, 0, new List<int>()));
         AutomatonState StartState = new AutomatonState(startStateInitItems, Smallest_NonterminalSymbol, Syntaxes);
@@ -337,11 +337,12 @@ public class LALR1Analyzer
         ExistingAutomatonStates.Add(StartState);
         for (int i = 0; i < ExistingAutomatonStates.Count; i++)
         {
-            Console.WriteLine($"State{i}");
-            Console.WriteLine("LR1Item:");
+            
+            //Console.WriteLine($"State{i}");
+            //Console.WriteLine("LR1Item:");
             for (int v = 0; v < ExistingAutomatonStates[i].LR1Items.Count; v++)
             {
-                Console.WriteLine(ExistingAutomatonStates[i].LR1Items[v].getItemString(Syntaxes));
+                //Console.WriteLine(ExistingAutomatonStates[i].LR1Items[v].getItemString(Syntaxes));
             }
             //Console.WriteLine($"Transition:");
 
@@ -354,9 +355,10 @@ public class LALR1Analyzer
                 {
                     continue;
                 }
-                List<AutomatonState> ExsistingStates = ExistingAutomatonStates.Where(o => o.IsItemsSame(newState)).ToList();
-                if (ExsistingStates.Count() != 0)//すでに同じLR1アイテム集合を持つステートがある場合
+                List<AutomatonState> ExsistingStates = ExistingAutomatonStates.Where(o => o.IsLR0PartsSame(newState)).ToList();
+                if (ExsistingStates.Count() != 0)//すでに同じLR0アイテム(LR1ののLASetを除いた部分という意味合い)集合を持つステートがある場合
                 {
+                    ExsistingStates[0].UpdateLASet(newState);
                     ExistingAutomatonStates[i].Transitions[aSymbol] = ExsistingStates[0];
                     //Console.WriteLine($"{i}-({(ProSym)aSymbol})->{ExistingAutomatonStates.IndexOf(ExsistingStates[0])}");
                     continue;
@@ -370,66 +372,33 @@ public class LALR1Analyzer
                 }
             }
             ExistingAutomatonStates[i].MakeReductions();
-            Console.WriteLine("構文解析表:");
+            //Console.WriteLine("構文解析表:");
             for (int v = 0; v < ExistingAutomatonStates[i].Reductions.Count; v++)
             {
                 if (ExistingAutomatonStates[i].Reductions[v].DotPos >= 0)
                 {
-                    Console.WriteLine($"{(ProSym)v}   Reduction   {ExistingAutomatonStates[i].Reductions[v].getItemString(Syntaxes)}");
+                    //Console.WriteLine($"{(ProSym)v}   Reduction   {ExistingAutomatonStates[i].Reductions[v].getItemString(Syntaxes)}");
                 }
                 else if (ExistingAutomatonStates[i].Transitions[v] != null)
                 {
-                    Console.WriteLine($"{(ProSym)v}   ShiftTo   {ExistingAutomatonStates.IndexOf(ExistingAutomatonStates[i].Transitions[v])}");
+                    //Console.WriteLine($"{(ProSym)v}   ShiftTo   {ExistingAutomatonStates.IndexOf(ExistingAutomatonStates[i].Transitions[v])}");
                 }
                 else
                 {
-                    Console.WriteLine($"{(ProSym)v}   Error");
+                    //Console.WriteLine($"{(ProSym)v}   Error");
                 }
             }
 
             Console.WriteLine("\n");
         }
-        
-        Console.WriteLine("MakeAutomaton(LR1)----------(Fin)");
 
-
-
-        //LALR1構文解析を行うオートマトンを作成していく
-        Console.WriteLine("MakeAutomaton(LALR1)----------");
-        List<AutomatonState> LALR1AutomatonStates = new List<AutomatonState>();
-        List<AutomatonState> ReplacedList=new List<AutomatonState>(ExistingAutomatonStates);
-
-        //LALR1法のオートマトンで使うステートを選ぶ+LR0アイテム集合がかぶっているステートを合体させる。
-        for (int i = 0; i < ExistingAutomatonStates.Count(); i++) 
-        {
-            List<AutomatonState> LR0PartsSameStates = LALR1AutomatonStates.Where((o) => o.IsLR0PartsSame(ExistingAutomatonStates[i])).ToList();
-            if (LR0PartsSameStates.Count() > 0) //すでにLALR1AutomatonStatesにLR0集合部分がExistingAutomatonStates[i]と一致しているStateが存在する場合
-            {
-                //ExistingAutomatonStates[i]をLALR1AutomatonStatesに追加しない
-                LR0PartsSameStates[0].UpdateLASet(ExistingAutomatonStates[i]);//そのStateにExistingAutomatonStates[i]のLASetを追加する。
-                ReplacedList[i] = LR0PartsSameStates[0];
-            }
-            else 
-            {
-                LALR1AutomatonStates.Add(ExistingAutomatonStates[i]);
-            }
-
-        }
-
-        //還元/シフト動作を更新
-        for (int i=0;i< LALR1AutomatonStates.Count;i++) 
-        {
-            LALR1AutomatonStates[i].MakeReductions();
-
-        }
-
-        for (int i = 0; i < LALR1AutomatonStates.Count(); i++) 
+        for (int i = 0; i < ExistingAutomatonStates.Count; i++) 
         {
             Console.WriteLine($"State{i}");
             Console.WriteLine("LR1Item:");
-            for (int v = 0; v < LALR1AutomatonStates[i].LR1Items.Count; v++)
+            for (int v = 0; v < ExistingAutomatonStates[i].LR1Items.Count; v++)
             {
-                Console.WriteLine(LALR1AutomatonStates[i].LR1Items[v].getItemString(Syntaxes));
+                Console.WriteLine(ExistingAutomatonStates[i].LR1Items[v].getItemString(Syntaxes));
             }
             Console.WriteLine("構文解析表:");
             for (int v = 0; v < ExistingAutomatonStates[i].Reductions.Count; v++)
@@ -447,11 +416,11 @@ public class LALR1Analyzer
                     Console.WriteLine($"{(ProSym)v}   Error");
                 }
             }
+
             Console.WriteLine("\n");
         }
-        
-        Console.WriteLine("MakeAutomaton(LALR1)----------(Fin)");
-        
+
+            Console.WriteLine("MakeAutomaton----------(Fin)");
     }
 
 
@@ -518,14 +487,6 @@ public class LALR1Analyzer
             }
         }
 
-        public void ReplaceTransitionState(List<AutomatonState> prevStates,List<AutomatonState> replacedState) 
-        {
-            for (int i = 0; i < Transitions.Count(); i++) 
-            {
-
-            }
-        }
-
         private void MakeLR1Items(List<LR1Item> InitItems)
         {
             LR1Items = new List<LR1Item>(InitItems);
@@ -582,13 +543,6 @@ public class LALR1Analyzer
 
         public void MakeReductions()
         {
-
-            Reductions = new List<LR1Item>();
-            for (int i = 0; i < Syntaxes.Count; i++)
-            {
-                Reductions.Add(new LR1Item(-1, -1, -1, new List<int>()));
-            }
-
             for (int i = 0; i < LR1Items.Count; i++)//各LR1temについて
             {
                 if (Syntaxes[LR1Items[i].DestSymbol][LR1Items[i].Conversion].Count() <= LR1Items[i].DotPos) //Dotが最後にある(還元可能な)アイテムならば
