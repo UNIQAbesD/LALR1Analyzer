@@ -11,23 +11,11 @@ using Microsoft.VisualBasic;
 using System.Xml.Serialization;
 using System.Reflection.Metadata.Ecma335;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Serialization;
+using System.IO;
 
 
-/*public enum ProSym
-{
-    Equal,
-    Bigger,
-    Smaller,
-    Plus,
-    Times,
-    LeftParentheses,
-    RightParentheses,
-    num,
-    Atom,
-    Factor,
-    Term,
-    Formula
-}*/
+
 public enum ProSym
 {
     End,
@@ -45,9 +33,7 @@ public enum ProSym
     Formula,
     Start
 }
-
-
-/*public enum ProSym
+public enum ProSym2
 {
     End,
     Equal,
@@ -57,16 +43,27 @@ public enum ProSym
     Times,
     LeftParentheses,
     RightParentheses,
+    LeftBracket,
+    RightBracket,
     num,
+    Assign,
+    Semicolon,
+    IfKeyword,
+    ElseKeyword,
+    WhileKeyword,
+    Identifier,
     Atom,
-    FactorDash,
     Factor,
-    TermDash,
     Term,
-    FormulaDash,
     Formula,
+    IfStatement,
+    WhileStatement,
+    Statement,
+    Statements,
     Start
-}*/
+}
+
+
 
 
 public class LR1Item : IEqualityComparer<LR1Item>
@@ -89,16 +86,16 @@ public class LR1Item : IEqualityComparer<LR1Item>
         return lr1Item.DestSymbol==DestSymbol&lr1Item.Conversion==Conversion&lr1Item.DotPos==DotPos;
     }
 
-    public string getItemString(List<List<List<int>>> syntaxes)
+    public string getItemString(List<List<List<int>>> syntaxes,List<string> symbolNames)
     {
-        string retString = $"{(ProSym)DestSymbol} => ";
+        string retString = $"{symbolNames[DestSymbol]} => ";
         for (int i = 0; i < syntaxes[DestSymbol][Conversion].Count; i++)
         {
             if (DotPos == i)
             {
                 retString += "・ ";
             }
-            retString += $"{(ProSym)syntaxes[DestSymbol][Conversion][i]} ";
+            retString += $"{symbolNames[syntaxes[DestSymbol][Conversion][i]]} ";
         }
         if (DotPos == syntaxes[DestSymbol][Conversion].Count)
         {
@@ -107,7 +104,7 @@ public class LR1Item : IEqualityComparer<LR1Item>
         retString += "[ ";
         for (int i = 0; i < LASet.Count; i++)
         {
-            retString += $"{(ProSym)LASet[i]} ";
+            retString += $"{symbolNames[LASet[i]]} ";
         }
         retString += "]";
         return retString;
@@ -172,7 +169,7 @@ public class ProgramTree
         TreeTypeID = treeTypeID;
         ProgramTrees = programTrees;
     }
-    public string TreeToStr(int depth)
+    public string TreeToStr(int depth,List<string> symbolNames)
     {
         string indentSpaces = "";
         for (int i = 0; i < depth; i++)
@@ -181,13 +178,13 @@ public class ProgramTree
         }
         if (ProgramTrees == null || ProgramTrees.Count == 0)
         {
-            return indentSpaces + $"{(ProSym)TreeTypeID} \n";
+            return indentSpaces + $"{symbolNames[TreeTypeID]} \n";
         }
 
-        string retString = indentSpaces + $"{(ProSym)TreeTypeID}(\n";
+        string retString = indentSpaces + $"{symbolNames[TreeTypeID]}(\n";
         for (int i = 0; i < ProgramTrees.Count; i++)
         {
-            retString += $"{ProgramTrees[i].TreeToStr(depth + 1)}";
+            retString += $"{ProgramTrees[i].TreeToStr(depth + 1, symbolNames)}";
         }
         retString += indentSpaces + ") \n";
         return retString;
@@ -199,15 +196,36 @@ public class StrTokenizer
     List<string> TokenRegExs;
     List<string> IgnoredRegExs;
 
+    public bool IsLogOutput=false;
+    public List<string> SymbolNames;
+    public void SetIsLogOutput(List<string> symbolNames) 
+    {
+        IsLogOutput = true;
+        SymbolNames = symbolNames;
+    }
+
+
+    public StrTokenizer(List<string> tokenRegExs, List<string> ignoredRegExs,List<string> symbolNames)/*:this(tokenRegExs,ignoredRegExs)*/
+    {
+
+        SetIsLogOutput(symbolNames);
+        TokenRegExs = tokenRegExs;
+        IgnoredRegExs = ignoredRegExs;
+
+    }
+
     public StrTokenizer(List<string> tokenRegExs, List<string> ignoredRegExs)
     {
+
         TokenRegExs = tokenRegExs;
         IgnoredRegExs = ignoredRegExs;
     }
 
+
+
     public List<ProgramTree> TokenizeString(string sourceCode)
     {
-
+        //Enum.GetNames(typeof(ProSym)).ToList();
         List<ProgramTree> teriminalSymbols = new List<ProgramTree>();
         string restSourceCode = sourceCode;
         while (restSourceCode.Length > 0)
@@ -218,8 +236,8 @@ public class StrTokenizer
                 Match match = Regex.Match(restSourceCode, TokenRegExs[i]);
                 if (match.Success && match.Index == 0 && match.Length > 0)
                 {
-                    Console.WriteLine($"Matched:{match.Value}");
-                    Console.WriteLine((ProSym)i);
+                    if (IsLogOutput) {Console.WriteLine($"Matched:{match.Value}");Console.WriteLine(SymbolNames[i]);}
+                    
                     teriminalSymbols.Add(new ProgramTree(i, null));
                     restSourceCode = restSourceCode.Substring(match.Length);
                     isRegExMatched = true;
@@ -236,7 +254,8 @@ public class StrTokenizer
                 Match match = Regex.Match(restSourceCode, IgnoredRegExs[i]);
                 if (match.Success && match.Index == 0 && match.Length > 0)
                 {
-                    Console.WriteLine($"Ignored:{match.Value}");
+                    if (IsLogOutput) {Console.WriteLine($"Ignored:{match.Value}");}
+                    
                     restSourceCode = restSourceCode.Substring(match.Length);
                     isRegExMatched = true;
                     break;
@@ -248,7 +267,8 @@ public class StrTokenizer
                 continue;
             }
 
-            Console.WriteLine($"Unexpected:{restSourceCode[0]}");
+            if (IsLogOutput){Console.WriteLine($"Unexpected:{restSourceCode[0]}");}
+            
             restSourceCode = restSourceCode.Substring(1);
         }
 
@@ -264,6 +284,9 @@ public class LALR1Analyzer
     public List<List<List<int>>> Syntaxes;
     public List<AutomatonState> ExistingAutomatonStates;
 
+    public bool IsLogOutput=false;
+    private List<string> SymbolNames;
+
 
     public ProgramTree analyze(List<ProgramTree> terminalSymbols)
     {
@@ -273,22 +296,24 @@ public class LALR1Analyzer
         int curTerminalSymbolIndex = 0;
         while (curTerminalSymbolIndex < terminalSymbols.Count)//終了記号が読み込まれたら(=終了記号以前の終端記号列が完全に還元されたことと同値)
         {
-            Console.WriteLine($"State:{ExistingAutomatonStates.IndexOf(StateTrail[StateTrail.Count - 1])}");
-            string RestTerminalSymbolStr = " RestTerminalSymbol:";
-            for (int i = curTerminalSymbolIndex; i < terminalSymbols.Count; i++)
+            if (IsLogOutput) 
             {
-                RestTerminalSymbolStr += $"{(ProSym)terminalSymbols[i].TreeTypeID} ";
+                Console.WriteLine($"State:{ExistingAutomatonStates.IndexOf(StateTrail[StateTrail.Count - 1])}");
+                string RestTerminalSymbolStr = " RestTerminalSymbol:";
+                for (int i = curTerminalSymbolIndex; i < terminalSymbols.Count; i++)
+                {
+                    RestTerminalSymbolStr += $"{SymbolNames[terminalSymbols[i].TreeTypeID]} ";
+                }
+                Console.WriteLine(RestTerminalSymbolStr);
+                string PushedTreeStr = " PushedTree:";
+                for (int i = 0; i < PushdTree.Count; i++)
+                {
+                    PushedTreeStr += $"{SymbolNames[PushdTree[i].TreeTypeID]} ";
+                }
+                Console.WriteLine(PushedTreeStr);
+                Console.WriteLine("");
             }
-            Console.WriteLine(RestTerminalSymbolStr);
-            string PushedTreeStr = " PushedTree:";
-            for (int i = 0; i < PushdTree.Count; i++)
-            {
-                PushedTreeStr += $"{(ProSym)PushdTree[i].TreeTypeID} ";
-            }
-            Console.WriteLine(PushedTreeStr);
-            Console.WriteLine("");
-
-
+                
 
             ProgramTree nextPushedSymbol = terminalSymbols[curTerminalSymbolIndex];
             LR1Item nextReduction = StateTrail[StateTrail.Count - 1].Reductions[nextPushedSymbol.TreeTypeID];
@@ -320,8 +345,19 @@ public class LALR1Analyzer
         return PushdTree[0];
     }
 
+    public LALR1Analyzer(int smallest_NonterminalSymbol, List<List<List<int>>> syntaxes, List<string> symbolNames)/* :this(smallest_NonterminalSymbol, syntaxes)*/
+    {
+        
+        IsLogOutput=true;
+        SymbolNames = symbolNames;
+        Smallest_NonterminalSymbol = smallest_NonterminalSymbol;
+        Syntaxes = syntaxes;
+        MakeAutomaton();
+    }
+
     public LALR1Analyzer(int smallest_NonterminalSymbol, List<List<List<int>>> syntaxes)
     {
+        
         Smallest_NonterminalSymbol = smallest_NonterminalSymbol;
         Syntaxes = syntaxes;
         MakeAutomaton();
@@ -329,7 +365,7 @@ public class LALR1Analyzer
 
     public void MakeAutomaton()
     {
-        Console.WriteLine("MakeAutomaton----------");
+        
         List<LR1Item> startStateInitItems = new List<LR1Item>();
         startStateInitItems.Add(new LR1Item(Syntaxes.Count - 1, 0, 0, new List<int>()));
         AutomatonState StartState = new AutomatonState(startStateInitItems, Smallest_NonterminalSymbol, Syntaxes);
@@ -360,15 +396,12 @@ public class LALR1Analyzer
                 {
                     ExsistingStates[0].UpdateLASet(newState);
                     ExistingAutomatonStates[i].Transitions[aSymbol] = ExsistingStates[0];
-                    //Console.WriteLine($"{i}-({(ProSym)aSymbol})->{ExistingAutomatonStates.IndexOf(ExsistingStates[0])}");
                     continue;
                 }
                 else
                 {
                     ExistingAutomatonStates.Add(newState);//ExistingAutomatonStatesに格納する
                     ExistingAutomatonStates[i].Transitions[aSymbol] = newState;
-                    //Console.WriteLine($"{i}-({(ProSym)aSymbol})->{ExistingAutomatonStates.Count-1}");
-
                 }
             }
 
@@ -378,35 +411,40 @@ public class LALR1Analyzer
             ExistingAutomatonStates[i].MakeReductions();
         }
 
-        for (int i = 0; i < ExistingAutomatonStates.Count; i++) 
+        if (IsLogOutput) 
         {
-            Console.WriteLine($"State{i}");
-            Console.WriteLine("LR1Item:");
-            for (int v = 0; v < ExistingAutomatonStates[i].LR1Items.Count; v++)
+            Console.WriteLine("MakeAutomaton----------");
+            for (int i = 0; i < ExistingAutomatonStates.Count; i++)
             {
-                Console.WriteLine(ExistingAutomatonStates[i].LR1Items[v].getItemString(Syntaxes));
-            }
-            Console.WriteLine("");
-            Console.WriteLine("構文解析表:");
-            for (int v = 0; v < ExistingAutomatonStates[i].Reductions.Count; v++)
-            {
-                if (ExistingAutomatonStates[i].Reductions[v].DotPos >= 0)
+                Console.WriteLine($"State{i}");
+                Console.WriteLine("LR1Item:");
+                for (int v = 0; v < ExistingAutomatonStates[i].LR1Items.Count; v++)
                 {
-                    Console.WriteLine($"{(ProSym)v}   Reduction   {ExistingAutomatonStates[i].Reductions[v].getItemString(Syntaxes)}");
+                    Console.WriteLine(ExistingAutomatonStates[i].LR1Items[v].getItemString(Syntaxes, SymbolNames));
                 }
-                else if (ExistingAutomatonStates[i].Transitions[v] != null)
+                Console.WriteLine("");
+                Console.WriteLine("構文解析表:");
+                for (int v = 0; v < ExistingAutomatonStates[i].Reductions.Count; v++)
                 {
-                    Console.WriteLine($"{(ProSym)v}   ShiftTo   {ExistingAutomatonStates.IndexOf(ExistingAutomatonStates[i].Transitions[v])}");
+                    if (ExistingAutomatonStates[i].Reductions[v].DotPos >= 0)
+                    {
+                        Console.WriteLine($"{SymbolNames[v]}   Reduction   {ExistingAutomatonStates[i].Reductions[v].getItemString(Syntaxes, SymbolNames)}");
+                    }
+                    else if (ExistingAutomatonStates[i].Transitions[v] != null)
+                    {
+                        Console.WriteLine($"{SymbolNames[v]}   ShiftTo   {ExistingAutomatonStates.IndexOf(ExistingAutomatonStates[i].Transitions[v])}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{SymbolNames[v]}   Error");
+                    }
                 }
-                else
-                {
-                    Console.WriteLine($"{(ProSym)v}   Error");
-                }
-            }
 
-            Console.WriteLine("\n");
-        }    
-        Console.WriteLine("MakeAutomaton----------(Fin)");
+                Console.WriteLine("\n");
+            }
+            Console.WriteLine("MakeAutomaton----------(Fin)");
+        }
+        
     }
 
 

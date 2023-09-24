@@ -1,8 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System.Diagnostics;
 
-Console.WriteLine("Hello, World!");
-
+/*
 List<string> regExs = new List<string>(new string[] {
             "",
             "==",
@@ -20,38 +19,8 @@ List<string> ignoredRegExs = new List<string>(new string[] {
 
 string sourceCode = "21+31+(29+40)*10+20*30";
 
-List<ProgramTree> terminalSymbols = new StrTokenizer(regExs, ignoredRegExs).TokenizeString(sourceCode);
+List<ProgramTree> terminalSymbols = new StrTokenizer(regExs, ignoredRegExs, Enum.GetNames(typeof(ProSym)).ToList()).TokenizeString(sourceCode);
 terminalSymbols.Add(new ProgramTree((int)ProSym.End, new List<ProgramTree>()));
-
-/*List<List<int>> atomSyntax = new List<List<int>>(new List<int>[] {
-            new List<int>(new int[]{(int)ProSym.num}),
-            new List<int>(new int[]{(int)ProSym.LeftParentheses,(int)ProSym.Formula,(int)ProSym.RightParentheses})
-        });
-List<List<int>> factorSyntax = new List<List<int>>(new List<int>[] {
-            new List<int>(new int[]{(int)ProSym.Atom,(int)ProSym.FactorDash})
-        });
-List<List<int>> factorDashSyntax = new List<List<int>>(new List<int>[] {
-            new List<int>(new int[]{(int)ProSym.Times,(int)ProSym.Factor}),
-            new List<int>()
-        });
-List<List<int>> termSyntax = new List<List<int>>(new List<int>[] {
-            new List<int>(new int[]{(int)ProSym.Factor,(int)ProSym.TermDash})
-        });
-List<List<int>> termDashSyntax = new List<List<int>>(new List<int>[] {
-            new List<int>(new int[]{(int)ProSym.Plus,(int)ProSym.Term}),
-            new List<int>()
-        });
-List<List<int>> formulaSyntax = new List<List<int>>(new List<int>[] {
-            new List<int>(new int[]{(int)ProSym.Term,(int)ProSym.FormulaDash })
-        });
-List<List<int>> formulaDashSyntax = new List<List<int>>(new List<int>[] {
-            new List<int>(new int[]{(int)ProSym.Bigger,(int)ProSym.Formula}),
-            new List<int>(new int[]{(int)ProSym.Equal,(int)ProSym.Formula}),
-            new List<int>()
-        });
-List<List<int>> startSyntax = new List<List<int>>(new List<int>[] {
-            new List<int>(new int[]{(int)ProSym.Formula,(int)ProSym.End })
-        });*/
 
 List<List<int>> atomSyntax = new List<List<int>>(new List<int>[] {
             new List<int>(new int[]{(int)ProSym.num}),
@@ -83,39 +52,122 @@ for (int i = 0; i <= (int)ProSym.Start; i++)
 {
     syntax.Add(new List<List<int>>());
 }
-Console.WriteLine(syntax.Count);
-Console.WriteLine((int)ProSym.Atom);
+
+
 syntax[(int)ProSym.Atom] = atomSyntax;
 syntax[(int)ProSym.Factor] = factorSyntax;
 syntax[(int)ProSym.Term] = termSyntax;
 syntax[(int)ProSym.Formula] = formulaSyntax;
 syntax[(int)ProSym.Start] = startSyntax;
-/*syntax[(int)ProSym.Atom] = atomSyntax;
-syntax[(int)ProSym.Factor] = factorSyntax;
-syntax[(int)ProSym.FactorDash] = factorDashSyntax;
-syntax[(int)ProSym.Term] = termSyntax;
-syntax[(int)ProSym.TermDash] = termDashSyntax;
-syntax[(int)ProSym.Formula] = formulaSyntax;
-syntax[(int)ProSym.FormulaDash] = formulaDashSyntax;
-syntax[(int)ProSym.Start] = startSyntax;*/
+
+LALR1Analyzer lr0Analyzer = new LALR1Analyzer((int)ProSym.Atom, syntax, Enum.GetNames(typeof(ProSym)).ToList());
+Console.WriteLine(lr0Analyzer.analyze(terminalSymbols).TreeToStr(0,Enum.GetNames(typeof(ProSym)).ToList()));
 
 
-LALR1Analyzer lr0Analyzer = new LALR1Analyzer((int)ProSym.Atom, syntax);
 
+foreach (string s in Enum.GetNames(typeof(ProSym2))) 
+{
+    Console.WriteLine(s);
+}
+*/
 
-Console.WriteLine(lr0Analyzer.analyze(terminalSymbols).TreeToStr(0));
+List<string> regExs2 = new List<string>(new string[] {
+            "",
+            "==",
+            ">",
+            "<",
+            @"\+",
+            @"\*",
+            @"\(",
+            @"\)",
+            @"\{",
+            @"\}",
+            "[0-9]+",
+            "=",
+            ";",
+            "if",
+            "else",
+            "while",
+            "[_a-zA-Z][[_a-zA-Z0-9]*",
+        });
+List<string> ignoredRegExs2 = new List<string>(new string[] {
+            "(//.*(\r\n|\n|\r)|\\s+)"
+        }); ;
 
-LR1Item a = new LR1Item(1, 1, 1, new List<int>(new int[] { 1, 2 }));
-LR1Item b = new LR1Item(1, 1, 1, new List<int>(new int[] { 2, 1 }));
-LR1Item c = new LR1Item(1, 1, 1, new List<int>(new int[] { 1, 2, 3 }));
-LR1Item d = new LR1Item(1, 1, 1, new List<int>(new int[] { 1, 4, 3 }));
-LR1Item e = new LR1Item(1, 1, 1, new List<int>(new int[] { 1, 3, 4 }));
-List<LR1Item> list_a = new List<LR1Item>(new LR1Item[] { a, b, c, d, e, a });
-Console.WriteLine(list_a.Distinct().Count());
+string sourceCode2 =
+    "pere=21+31+(29+40)*10+20*30;" +
+    "if(pere==1352)" +
+    "{" +
+    "rew=pere*2;" +
+    "pere=rew+2;" +
+    "}" +
+    "else" +
+    "{" +
+    "rew=pere*3;" +
+    "pere=rew+3;" +
+    "}";
 
-Console.WriteLine(list_a.Contains(new LR1Item(1, 1, 1, new List<int>(new int[] { 1, 3, 4 }))));
+List<ProgramTree> terminalSymbols2 = new StrTokenizer(regExs2, ignoredRegExs2, Enum.GetNames(typeof(ProSym2)).ToList()).TokenizeString(sourceCode2);
+terminalSymbols2.Add(new ProgramTree((int)ProSym2.End, new List<ProgramTree>()));
 
-Console.WriteLine(a.Equals(d, e));
+List<List<int>> atom2Syntax = new List<List<int>>(new List<int>[] {
+            new List<int>(new int[]{(int)ProSym2.num}),
+            new List<int>(new int[]{(int)ProSym2.Identifier}),
+            new List<int>(new int[]{(int)ProSym2.LeftParentheses,(int)ProSym2.Formula,(int)ProSym2.RightParentheses})
+        });
+List<List<int>> factor2Syntax = new List<List<int>>(new List<int>[] {
+            new List<int>(new int[]{(int)ProSym2.Factor,(int)ProSym2.Times,(int)ProSym2.Atom}),
+            new List<int>(new int[]{(int)ProSym2.Atom})
+        });
 
-Console.WriteLine($"{e == d}");
+List<List<int>> term2Syntax = new List<List<int>>(new List<int>[] {
+            new List<int>(new int[]{(int)ProSym2.Term,(int)ProSym2.Plus,(int)ProSym2.Factor}),
+            new List<int>(new int[]{(int)ProSym2.Factor})
+        });
+List<List<int>> formula2Syntax = new List<List<int>>(new List<int>[] {
+            new List<int>(new int[]{(int)ProSym2.Formula,(int)ProSym2.Bigger,(int)ProSym2.Term }),
+            new List<int>(new int[]{(int)ProSym2.Formula,(int)ProSym2.Equal,(int)ProSym2.Term }),
+            new List<int>(new int[]{(int)ProSym2.Term})
+        });
+List<List<int>> start2Syntax = new List<List<int>>(new List<int>[] {
+            new List<int>(new int[]{(int)ProSym2.Statements,(int)ProSym2.End })
+        });
+List<List<int>> ifStatementSyntax = new List<List<int>>(new List<int>[] {
+            new List<int>(new int[]{(int)ProSym2.IfKeyword,(int)ProSym2.LeftParentheses,(int)ProSym2.Formula,(int)ProSym2.RightParentheses,(int)ProSym2.LeftBracket,(int)ProSym2.Statements,(int)ProSym2.RightBracket}),
+            new List<int>(new int[]{(int)ProSym2.IfKeyword,(int)ProSym2.LeftParentheses,(int)ProSym2.Formula,(int)ProSym2.RightParentheses,(int)ProSym2.LeftBracket,(int)ProSym2.Statements,(int)ProSym2.RightBracket,(int)ProSym2.ElseKeyword,(int)ProSym2.LeftBracket,(int)ProSym2.Statements,(int)ProSym2.RightBracket})
+        });
+List<List<int>> whileStatementSyntax = new List<List<int>>(new List<int>[] {
+            new List<int>(new int[]{(int)ProSym2.WhileKeyword,(int)ProSym2.LeftParentheses,(int)ProSym2.Formula,(int)ProSym2.RightParentheses,(int)ProSym2.LeftBracket,(int)ProSym2.Statements,(int)ProSym2.RightBracket})
+        });
+
+List<List<int>> statementSyntax = new List<List<int>>(new List<int>[] {
+            new List<int>(new int[]{(int)ProSym2.Identifier,(int)ProSym2.Assign,(int)ProSym2.Formula,(int)ProSym2.Semicolon}),
+            new List<int>(new int[]{(int)ProSym2.WhileStatement}),
+            new List<int>(new int[]{(int)ProSym2.IfStatement}),
+});
+
+List<List<int>> statementsSyntax = new List<List<int>>(new List<int>[] {
+            new List<int>(new int[]{(int)ProSym2.Statements,(int)ProSym2.Statement}),
+            new List<int>(new int[]{(int)ProSym2.Statement})
+});
+
+List<List<List<int>>> syntax2 = new List<List<List<int>>>((int)ProSym2.Start + 1);
+
+for (int i = 0; i <= (int)ProSym2.Start; i++)
+{
+    syntax2.Add(new List<List<int>>());
+}
+
+syntax2[(int)ProSym2.Atom] = atom2Syntax;
+syntax2[(int)ProSym2.Factor] = factor2Syntax;
+syntax2[(int)ProSym2.Term] = term2Syntax;
+syntax2[(int)ProSym2.Formula] = formula2Syntax;
+syntax2[(int)ProSym2.IfStatement] = ifStatementSyntax;
+syntax2[(int)ProSym2.WhileStatement] = whileStatementSyntax;
+syntax2[(int)ProSym2.Statement] = statementSyntax;
+syntax2[(int)ProSym2.Statements] = statementsSyntax;
+syntax2[(int)ProSym2.Start] = start2Syntax;
+
+LALR1Analyzer lr0Analyzer2 = new LALR1Analyzer((int)ProSym2.Atom, syntax2, Enum.GetNames(typeof(ProSym2)).ToList());
+Console.WriteLine(lr0Analyzer2.analyze(terminalSymbols2).TreeToStr(0, Enum.GetNames(typeof(ProSym2)).ToList()));
 
