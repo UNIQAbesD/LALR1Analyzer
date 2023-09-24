@@ -1,0 +1,15 @@
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\bin\Debug\net6.0\LALR1Analyzer.exe
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\bin\Debug\net6.0\LALR1Analyzer.deps.json
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\bin\Debug\net6.0\LALR1Analyzer.runtimeconfig.json
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\bin\Debug\net6.0\LALR1Analyzer.dll
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\bin\Debug\net6.0\LALR1Analyzer.pdb
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\obj\Debug\net6.0\LALR1Analyzer.csproj.AssemblyReference.cache
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\obj\Debug\net6.0\LALR1Analyzer.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\obj\Debug\net6.0\LALR1Analyzer.AssemblyInfoInputs.cache
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\obj\Debug\net6.0\LALR1Analyzer.AssemblyInfo.cs
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\obj\Debug\net6.0\LALR1Analyzer.csproj.CoreCompileInputs.cache
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\obj\Debug\net6.0\LALR1Analyzer.dll
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\obj\Debug\net6.0\refint\LALR1Analyzer.dll
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\obj\Debug\net6.0\LALR1Analyzer.pdb
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\obj\Debug\net6.0\LALR1Analyzer.genruntimeconfig.cache
+C:\Users\uniqa\Desktop\C#File\LALR1Analyzer\LALR1Analyzer\obj\Debug\net6.0\ref\LALR1Analyzer.dll
