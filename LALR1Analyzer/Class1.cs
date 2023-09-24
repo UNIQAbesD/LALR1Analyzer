@@ -371,25 +371,11 @@ public class LALR1Analyzer
 
                 }
             }
-            ExistingAutomatonStates[i].MakeReductions();
-            //Console.WriteLine("構文解析表:");
-            for (int v = 0; v < ExistingAutomatonStates[i].Reductions.Count; v++)
-            {
-                if (ExistingAutomatonStates[i].Reductions[v].DotPos >= 0)
-                {
-                    //Console.WriteLine($"{(ProSym)v}   Reduction   {ExistingAutomatonStates[i].Reductions[v].getItemString(Syntaxes)}");
-                }
-                else if (ExistingAutomatonStates[i].Transitions[v] != null)
-                {
-                    //Console.WriteLine($"{(ProSym)v}   ShiftTo   {ExistingAutomatonStates.IndexOf(ExistingAutomatonStates[i].Transitions[v])}");
-                }
-                else
-                {
-                    //Console.WriteLine($"{(ProSym)v}   Error");
-                }
-            }
 
-            Console.WriteLine("\n");
+        }
+        for (int i = 0; i < ExistingAutomatonStates.Count; i++) 
+        {
+            ExistingAutomatonStates[i].MakeReductions();
         }
 
         for (int i = 0; i < ExistingAutomatonStates.Count; i++) 
@@ -400,6 +386,7 @@ public class LALR1Analyzer
             {
                 Console.WriteLine(ExistingAutomatonStates[i].LR1Items[v].getItemString(Syntaxes));
             }
+            Console.WriteLine("");
             Console.WriteLine("構文解析表:");
             for (int v = 0; v < ExistingAutomatonStates[i].Reductions.Count; v++)
             {
@@ -418,9 +405,8 @@ public class LALR1Analyzer
             }
 
             Console.WriteLine("\n");
-        }
-
-            Console.WriteLine("MakeAutomaton----------(Fin)");
+        }    
+        Console.WriteLine("MakeAutomaton----------(Fin)");
     }
 
 
@@ -443,11 +429,7 @@ public class LALR1Analyzer
             {
                 Transitions.Add(null);
             }
-            Reductions = new List<LR1Item>();
-            for (int i = 0; i < syntaxes.Count; i++)
-            {
-                Reductions.Add(new LR1Item(-1, -1, -1, new List<int>()));
-            }
+            
             MakeLR1Items(initLR1Items);
 
 
@@ -543,6 +525,11 @@ public class LALR1Analyzer
 
         public void MakeReductions()
         {
+            Reductions = new List<LR1Item>();
+            for (int i = 0; i < Syntaxes.Count; i++)
+            {
+                Reductions.Add(new LR1Item(-1, -1, -1, new List<int>()));
+            }
             for (int i = 0; i < LR1Items.Count; i++)//各LR1temについて
             {
                 if (Syntaxes[LR1Items[i].DestSymbol][LR1Items[i].Conversion].Count() <= LR1Items[i].DotPos) //Dotが最後にある(還元可能な)アイテムならば
@@ -552,6 +539,14 @@ public class LALR1Analyzer
                     {
                         if (LR1Items[i].LASet.Contains(v) || LR1Items[i].LASet.Count == 0)
                         {
+                            if (Reductions[v].DotPos>=0) 
+                            {
+                                Console.WriteLine("還元-還元競合");
+                            }
+                            if (Transitions[v]!=null) 
+                            {
+                                Console.WriteLine("シフト-還元競合");
+                            }
                             Reductions[v] = LR1Items[i];//そのアイテムへの還元を行う
                         }
                     }
